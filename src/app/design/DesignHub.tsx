@@ -1,0 +1,91 @@
+'use client';
+
+import { useState } from 'react';
+import { ArrowUpRight, ChevronDown, Code, Layers, LayoutGrid, List, Palette, Presentation, Search, X, type LucideIcon } from 'lucide-react';
+import FilterPopover from '@/components/FilterPopover';
+import { DESIGN_FILTERS, DESIGN_FILTER_DEFAULTS, STANDALONE_URL } from '@/lib/hubs';
+
+const VIEWS = [{ id: 'all', label: 'All' }, { id: 'yours', label: 'Yours' }, { id: 'shared', label: 'Shared with you' }] as const;
+const PRODUCTS = ['Claude Design', 'Slides', 'Design System'];
+
+type QuickAction = { id: string; title: string; detail: string; badge?: string; tone: string; icon: LucideIcon };
+const QUICK_ACTIONS: QuickAction[] = [
+  { id: 'slides', title: 'Slides', detail: 'Decks and presentations', badge: 'New', tone: 'tone-peach', icon: Presentation },
+  { id: 'design', title: 'Design', detail: 'Mockups, screens and posters', badge: 'New', tone: 'tone-lavender', icon: Palette },
+  { id: 'codebase', title: 'Design in codebase', detail: 'Build UI straight into your repo', tone: 'tone-sage', icon: Code },
+  { id: 'system', title: 'Design System', detail: 'Colours, type and components', tone: 'tone-blue', icon: Layers },
+];
+
+/** Design hub: artifact filters, search, layout toggle, product selector, banner and quick-create cards. */
+export default function DesignHub() {
+  const [view, setView] = useState<(typeof VIEWS)[number]['id']>('all');
+  const [showSearch, setShowSearch] = useState(false);
+  const [query, setQuery] = useState('');
+  const [layout, setLayout] = useState<'grid' | 'list'>('grid');
+  const [product, setProduct] = useState(PRODUCTS[0]);
+  const [productOpen, setProductOpen] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
+  const [filters, setFilters] = useState<Record<string, string>>(DESIGN_FILTER_DEFAULTS);
+  // No artifacts are loaded yet, so the list is always empty; `query`, `view` and `filters` are ready for when it is.
+  const artifacts: string[] = [];
+
+  return <div className="hub">
+    <div className="hub-head">
+      <h1>Design</h1>
+      <div className="hub-controls">
+        {showSearch && <label className="hub-search">
+          <Search size={15} />
+          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search designs" aria-label="Search designs" />
+        </label>}
+        <button className={`icon-button ${showSearch ? 'is-active' : ''}`} aria-label="Search" aria-pressed={showSearch}
+          onClick={() => { setShowSearch((s) => !s); setQuery(''); }}><Search size={17} /></button>
+        <button className={`icon-button ${layout === 'grid' ? 'is-active' : ''}`} aria-label="Grid view" aria-pressed={layout === 'grid'} onClick={() => setLayout('grid')}><LayoutGrid size={17} /></button>
+        <button className={`icon-button ${layout === 'list' ? 'is-active' : ''}`} aria-label="List view" aria-pressed={layout === 'list'} onClick={() => setLayout('list')}><List size={17} /></button>
+        <FilterPopover items={DESIGN_FILTERS} values={filters} onChange={(id, v) => setFilters((f) => ({ ...f, [id]: v }))} label="Filter and sort" />
+        <div className="hub-select">
+          <button className="hub-pick" aria-haspopup="menu" aria-expanded={productOpen} onClick={() => setProductOpen((o) => !o)}>
+            {product} <ChevronDown size={14} />
+          </button>
+          {productOpen && <div className="dropdown hub-pick-menu" role="menu">
+            {PRODUCTS.map((p) => <button key={p} role="menuitemradio" aria-checked={p === product} className={p === product ? 'is-active' : ''}
+              onClick={() => { setProduct(p); setProductOpen(false); }}>{p}</button>)}
+          </div>}
+        </div>
+      </div>
+    </div>
+
+    <nav className="hub-tabs" aria-label="Filter artifacts">
+      {VIEWS.map((v) => <button key={v.id} className={view === v.id ? 'is-active' : ''} aria-current={view === v.id ? 'true' : undefined} onClick={() => setView(v.id)}>{v.label}</button>)}
+    </nav>
+
+    {showBanner && <section className="hub-banner" aria-label="Announcement">
+      <div>
+        <strong>Claude Design lives here now</strong>
+        <p>New Slides and Design projects are created as artifacts.</p>
+        <a href={STANDALONE_URL} target="_blank" rel="noreferrer">Visit the standalone homepage <ArrowUpRight size={14} /></a>
+      </div>
+      <button className="icon-button" aria-label="Dismiss banner" onClick={() => setShowBanner(false)}><X size={16} /></button>
+    </section>}
+
+    <section className="hub-section">
+      <h2 className="hub-section-title">Make something new</h2>
+      <div className="hub-quick">
+        {QUICK_ACTIONS.map(({ id, title, detail, badge, tone, icon: Icon }) => <button key={id} type="button" className="hub-quick-card">
+          <span className={`hub-quick-art ${tone}`}>
+            {badge && <span className="hub-badge">{badge}</span>}
+            <Icon size={34} strokeWidth={1.5} />
+          </span>
+          <span className="hub-quick-copy"><strong>{title}</strong><small>{detail}</small></span>
+        </button>)}
+      </div>
+    </section>
+
+    <section className="hub-section">
+      <h2 className="hub-section-title">Artifacts</h2>
+      {artifacts.length === 0 && <div className="empty hub-empty">
+        <Palette size={26} />
+        <p>Your artifacts will be listed here once you create one.</p>
+      </div>}
+    </section>
+  </div>;
+}

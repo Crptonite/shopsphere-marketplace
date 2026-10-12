@@ -1,0 +1,115 @@
+'use client';
+
+import { useState } from 'react';
+import { ArrowDownUp, ArrowRight, ChartColumn, ChevronDown, MessageSquare, Plus, Search, Sparkles, X } from 'lucide-react';
+import FilterPopover from '@/components/FilterPopover';
+import { CONNECTORS, CUSTOMIZE_DEFAULTS, CUSTOMIZE_FILTERS, HubItem, NEW_SKILLS, PLUGINS, POPULAR_SKILLS, SORT_FILTERS } from '@/lib/hubs';
+
+const CATEGORIES = [{ id: 'skills', label: 'Skills' }, { id: 'connectors', label: 'Connectors' }, { id: 'plugins', label: 'Plugins' }] as const;
+const TABS = [{ id: 'yours', label: 'Yours' }, { id: 'discover', label: 'Discover' }] as const;
+const ADD_OPTIONS = ['New skill', 'Upload skill file', 'Add from URL'];
+const PREVIEW_COUNT = 4;
+
+const SECTION_ITEMS: Record<(typeof CATEGORIES)[number]['id'], { newItems: HubItem[]; popular: HubItem[] }> = {
+  skills: { newItems: NEW_SKILLS, popular: POPULAR_SKILLS },
+  connectors: { newItems: CONNECTORS, popular: CONNECTORS },
+  plugins: { newItems: PLUGINS, popular: PLUGINS },
+};
+
+/** Customize hub: skills, connectors and plugins, with a featured banner and two card sections. */
+export default function CustomizeHub() {
+  const [category, setCategory] = useState<(typeof CATEGORIES)[number]['id']>('skills');
+  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('discover');
+  const [showSearch, setShowSearch] = useState(false);
+  const [query, setQuery] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [values, setValues] = useState<Record<string, string>>(CUSTOMIZE_DEFAULTS);
+  const setValue = (id: string, v: string) => setValues((s) => ({ ...s, [id]: v }));
+
+  const { newItems, popular } = SECTION_ITEMS[category];
+  const matches = (item: HubItem) => !query || `${item.title} ${item.description}`.toLowerCase().includes(query.toLowerCase());
+  const label = CATEGORIES.find((c) => c.id === category)!.label.toLowerCase();
+
+  const renderSection = (key: string, title: string, items: HubItem[], showInstalls: boolean) => {
+    const visible = items.filter(matches);
+    const isOpen = !!expanded[key];
+    const shown = isOpen ? visible : visible.slice(0, PREVIEW_COUNT);
+    return <section className="hub-section" key={key}>
+      <div className="hub-section-head">
+        <h2 className="hub-section-title">{title}</h2>
+        {visible.length > PREVIEW_COUNT && <button className="text-link" onClick={() => setExpanded((e) => ({ ...e, [key]: !isOpen }))}>
+          {isOpen ? 'Show less' : 'Show all'} <ArrowRight size={14} />
+        </button>}
+      </div>
+      {shown.length === 0 ? <p className="hint">No {label} match “{query}”.</p> : <div className="grid-2">
+        {shown.map((item) => <article key={item.id} className="hub-card">
+          <div className="hub-card-top">
+            <span className="hub-card-icon"><item.icon size={18} /></span>
+            <div><h3>{item.title}</h3><small>{item.author}{showInstalls && item.installs ? ` · ${item.installs} installs` : ''}</small></div>
+          </div>
+          <p>{item.description}</p>
+          <div className="hub-card-actions">
+            <button className="btn btn-ghost btn-sm"><MessageSquare size={13} /> Try</button>
+            <button className="icon-button" aria-label={`Add ${item.title}`}><Plus size={16} /></button>
+          </div>
+        </article>)}
+      </div>}
+    </section>;
+  };
+
+  return <div className="hub">
+    <div className="hub-head">
+      <h1>Customize</h1>
+      <div className="hub-controls">
+        {showSearch && <label className="hub-search">
+          <Search size={15} />
+          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" aria-label="Search" />
+          {query && <button className="hub-clear" aria-label="Clear search" onClick={() => setQuery('')}><X size={13} /></button>}
+        </label>}
+        <button className={`icon-button ${showSearch ? 'is-active' : ''}`} aria-label="Search" aria-pressed={showSearch} onClick={() => { setShowSearch((s) => !s); setQuery(''); }}><Search size={17} /></button>
+        <FilterPopover items={CUSTOMIZE_FILTERS} values={values} onChange={setValue} label="Filter" />
+        <FilterPopover items={SORT_FILTERS} values={values} onChange={setValue} icon={ArrowDownUp} label="Sort" />
+        <div className="hub-select">
+          <button className="btn hub-add" aria-haspopup="menu" aria-expanded={addOpen} onClick={() => setAddOpen((o) => !o)}>
+            <Plus size={15} /> Add <ChevronDown size={14} />
+          </button>
+          {addOpen && <div className="dropdown hub-pick-menu" role="menu">
+            {ADD_OPTIONS.map((o) => <button key={o} role="menuitem" onClick={() => setAddOpen(false)}>{o}</button>)}
+          </div>}
+        </div>
+      </div>
+    </div>
+
+    <div className="hub-pills" role="tablist" aria-label="Category">
+      {CATEGORIES.map((c) => <button key={c.id} role="tab" aria-selected={category === c.id} className={category === c.id ? 'is-active' : ''} onClick={() => setCategory(c.id)}>{c.label}</button>)}
+    </div>
+    <nav className="hub-tabs hub-tabs-sub" aria-label="Scope">
+      {TABS.map((t) => <button key={t.id} className={tab === t.id ? 'is-active' : ''} aria-current={tab === t.id ? 'true' : undefined} onClick={() => setTab(t.id)}>{t.label}</button>)}
+    </nav>
+
+    {tab === 'yours' ? <div className="empty hub-empty">
+      <Sparkles size={26} />
+      <p>You haven&apos;t added any {label} yet. Browse Discover to find some.</p>
+    </div> : <>
+      <section className="hub-hero" aria-label="Featured">
+        <div className="hub-hero-copy">
+          <span className="hub-tag">From Anthropic</span>
+          <h2>Data</h2>
+          <p>Query, chart and explain your data — SQL, spreadsheets and dashboards in one place.</p>
+          <button className="btn">Add</button>
+        </div>
+        <div className="hub-hero-art" aria-hidden>
+          <div className="hub-sheet">
+            {[0, 1, 2, 3].map((r) => <div key={r} className="hub-sheet-row">{[0, 1, 2, 3].map((c) => <i key={c} className={r === 0 ? 'head' : ''} />)}</div>)}
+            <div className="hub-bars">{[40, 68, 52, 84, 60].map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</div>
+          </div>
+          <ChartColumn className="hub-hero-badge" size={22} />
+        </div>
+      </section>
+
+      {renderSection(`${category}-new`, `New ${label}`, newItems, false)}
+      {renderSection(`${category}-popular`, `Most installed ${label}`, popular, true)}
+    </>}
+  </div>;
+}
