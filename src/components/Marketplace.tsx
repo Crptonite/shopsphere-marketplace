@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ArrowDownUp, ArrowRight, Check, ChevronDown, ExternalLink, Search, SlidersHorizontal, Sparkles, Store } from 'lucide-react';
 import ProductCard, { type CardItem } from '@/components/ProductCard';
+import AllPagesMenu from '@/components/AllPagesMenu';
 import { useLikes } from '@/components/useLikes';
 import { CATEGORIES, categoryHref } from '@/lib/categories';
 
@@ -71,6 +72,7 @@ export default function Marketplace({ variant }: { variant: 'home' | 'results' }
     ?? (variant === 'home' ? 'Finds worth finding.' : 'All listings');
 
   return <main>
+    <AllPagesMenu />
     {variant === 'home' && <>
       <section className="hero" id="discover" style={{ marginTop: 20 }}>
         <div className="hero-content">

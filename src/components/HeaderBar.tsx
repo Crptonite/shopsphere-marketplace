@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { Bell, ChevronDown, Heart, LayoutGrid, LocateFixed, MapPin, MessageCircle, Search, ShoppingBag, ShoppingCart, Wallet, ListOrdered, Tag, Package, PieChart, User, LogOut, Compass, Megaphone, Users, Settings, Ticket, BadgeCheck, ListChecks } from 'lucide-react';
+import { Bell, ChevronDown, Heart, LayoutGrid, LocateFixed, MapPin, MessageCircle, Search, ShoppingBag, ShoppingCart, Wallet, ListOrdered, Tag, Package, PieChart, User, LogOut, Compass, Megaphone, Users, Settings, Ticket, BadgeCheck, ListChecks, ChartColumn } from 'lucide-react';
 import { CATEGORIES, categoryHref } from '@/lib/categories';
 import SidePanel, { type PanelKind } from '@/components/SidePanel';
 import MegaMenu from '@/components/MegaMenu';
@@ -78,6 +78,7 @@ export default function HeaderBar({ user, cartCount }: { user: HeaderUser; cartC
             <Link href="/saved-searches" role="menuitem"><Search size={16} /> Saved searches</Link>
             <Link href="/promos" role="menuitem"><Ticket size={16} /> My promos</Link>
             <Link href="/certified" role="menuitem"><BadgeCheck size={16} /> Certified services</Link>
+            <Link href="/trade" role="menuitem"><ChartColumn size={16} /> Trade</Link>
             <div className="dropdown-label">More</div>
             <Link href="/settings" role="menuitem"><Settings size={16} /> Settings</Link>
             <Link href="/finance" role="menuitem"><Wallet size={16} /> Finance dashboard</Link>
