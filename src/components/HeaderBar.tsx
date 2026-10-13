@@ -12,7 +12,11 @@ import { money } from '@/lib/format';
 
 type HeaderUser = { displayName: string; avatarUrl: string; isAdmin: boolean } | null;
 
-export default function HeaderBar({ user, cartCount }: { user: HeaderUser; cartCount: number }) {
+type SwitchAccount = { userId: string; email: string; expiresAt: number };
+
+const untilTime = (ms: number) => new Date(ms).toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Singapore' });
+
+export default function HeaderBar({ user, cartCount, vault = false, accounts = [] }: { user: HeaderUser; cartCount: number; vault?: boolean; accounts?: SwitchAccount[] }) {
   const [panel, setPanel] = useState<PanelKind | null>(null);
   const [menu, setMenu] = useState(false);
   const [group, setGroup] = useState<string | null>(null);
@@ -85,7 +89,19 @@ export default function HeaderBar({ user, cartCount }: { user: HeaderUser; cartC
             <Link href="/spending" role="menuitem"><PieChart size={16} /> Spending</Link>
             {user.isAdmin && <><div className="dropdown-label">Admin</div><Link href="/admin/discovery" role="menuitem"><Compass size={16} /> Product discovery</Link><Link href="/admin/users" role="menuitem"><Users size={16} /> Users</Link><Link href="/admin/announcements" role="menuitem"><Megaphone size={16} /> Announcements</Link></>}
             <hr />
-            <form action="/auth/signout" method="post"><button type="submit" role="menuitem"><LogOut size={16} /> Log out</button></form>
+            {vault ? <>
+              <div className="dropdown-label">Accounts</div>
+              {accounts.map((a) => <form key={a.userId} action="/auth/accounts/switch" method="post">
+                <input type="hidden" name="to" value={a.userId} />
+                <input type="hidden" name="next" value={pathname} />
+                <button type="submit" role="menuitem" title={`Switch within 2 hours of last use, until ${untilTime(a.expiresAt)}`}><Users size={16} /> {a.email} <span className="hint">until {untilTime(a.expiresAt)}</span></button>
+              </form>)}
+              <form action="/auth/accounts/add" method="post">
+                <input type="hidden" name="next" value={pathname} />
+                <button type="submit" role="menuitem"><Users size={16} /> Add account</button>
+              </form>
+            </> : <form action="/auth/logout?to=/login" method="post"><button type="submit" role="menuitem"><Users size={16} /> Switch account</button></form>}
+            <form action="/auth/logout" method="post"><button type="submit" role="menuitem"><LogOut size={16} /> Log out</button></form>
           </div>}
         </div> : <Link className="nav-signin" href={`/login?next=${encodeURIComponent(pathname)}`}>Sign in</Link>}
         {icon('likes', 'Likes', Heart)}

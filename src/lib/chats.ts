@@ -1,6 +1,7 @@
 import 'server-only';
 import { pool } from '@/lib/db';
 import { notify } from '@/lib/notify';
+import { announceChat } from '@/lib/realtime';
 
 export type Conversation = {
   id: string;
@@ -63,8 +64,15 @@ export async function getConversation(id: string, userId: string): Promise<Conve
 
 export async function getMessages(conversationId: string, afterId = 0): Promise<ChatMessage[]> {
   const { rows } = await pool.query<ChatMessage>(
-    `SELECT id::int, sender_id AS "senderId", body, kind, meta, created_at AS "createdAt"
-     FROM messages WHERE conversation_id = $1 AND id > $2 ORDER BY id LIMIT 500`,
+    `SELECT id::int, sender_id AS "senderId",
+       CASE WHEN deleted_at IS NOT NULL THEN 'Message deleted' ELSE body END AS body,
+       CASE WHEN deleted_at IS NOT NULL THEN 'system' ELSE kind END AS kind,
+       CASE WHEN deleted_at IS NOT NULL THEN NULL ELSE meta END AS meta,
+       created_at AS "createdAt"
+     FROM messages
+     WHERE conversation_id = $1
+       AND (id > $2 OR (deleted_at IS NOT NULL AND deleted_at > now() - interval '5 minutes'))
+     ORDER BY id LIMIT 500`,
     [conversationId, afterId],
   );
   return rows;
@@ -80,6 +88,7 @@ export async function postMessage(c: Conversation, senderId: string, body: strin
     'INSERT INTO messages (conversation_id, sender_id, body, kind, meta) VALUES ($1,$2,$3,$4,$5) RETURNING id::int', [c.id, senderId, body, kind, meta]);
   await pool.query('UPDATE conversations SET last_message_at = now(), buyer_archived = false, seller_archived = false WHERE id = $1', [c.id]);
   await markRead(c);
+  await announceChat(c.id);
   if (kind === 'system') return rows[0].id;
   const recipient = senderId === c.buyerId ? c.sellerId : c.buyerId;
   const title = kind === 'offer' ? 'New trade-in offer' : kind === 'viewing' ? 'New viewing request' : 'New message';

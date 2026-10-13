@@ -4,6 +4,7 @@ import { pool } from '@/lib/db';
 import { apiUser, jsonError, serverError } from '@/lib/api';
 import { getConversation, getMessages, markRead, postMessage, setArchived } from '@/lib/chats';
 import { notify } from '@/lib/notify';
+import { announceChat } from '@/lib/realtime';
 import { dateTime, isProperty, money2 } from '@/lib/format';
 
 export const runtime = 'nodejs';
@@ -27,6 +28,8 @@ const actionSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('offer'), tradeItem: z.string().trim().min(2).max(300), cashDiff: z.coerce.number().min(-1_000_000).max(1_000_000) }),
   z.object({ type: z.literal('viewing'), slot: z.string().refine((v) => !Number.isNaN(Date.parse(v)), 'Invalid date') }),
   z.object({ type: z.literal('archive'), archived: z.boolean() }),
+  z.object({ type: z.literal('delete'), messageId: z.coerce.number().int().positive() }),
+  z.object({ type: z.literal('file'), url: z.string().url().max(500), name: z.string().trim().min(1).max(200) }),
   z.object({ type: z.literal('respond'), target: z.enum(['offer', 'viewing']), targetId: z.string().min(1), accept: z.boolean() }),
 ]);
 
@@ -45,8 +48,19 @@ export async function POST(request: NextRequest, { params }: Ctx) {
   try {
     if (a.type === 'archive') {
       await setArchived(c, a.archived);
+    } else if (a.type === 'delete') {
+      const result = await pool.query(
+        `UPDATE messages SET deleted_at = now()
+         WHERE id = $1 AND conversation_id = $2 AND sender_id = $3 AND kind = 'text' AND deleted_at IS NULL`,
+        [a.messageId, c.id, me]);
+      if (!result.rowCount) return jsonError('You can only delete your own text messages.', 403);
+      await announceChat(id);
     } else if (a.type === 'text') {
       await postMessage(c, me, a.body);
+    } else if (a.type === 'file') {
+      // Only files uploaded by this user (their storage folder) can be attached.
+      if (!a.url.includes('/storage/v1/object/public/') || !a.url.includes(`/${me}/`)) return jsonError('Attach a file you uploaded.', 403);
+      await postMessage(c, me, a.name, 'file', { url: a.url, name: a.name });
     } else if (a.type === 'offer') {
       if (c.role !== 'buyer' || !c.productId) return jsonError('Only the buyer can make an offer on a listing.');
       if (c.productType !== 'trade_in' && c.productType !== 'goods') return jsonError('Trade-in offers are for item listings.');

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
+import AppSidebar from '@/components/AppSidebar';
 import './globals.css';
 import './app.css';
 
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en-SG"><body>
     <SiteHeader />
-    {children}
+    <div className="app-shell">
+      <AppSidebar />
+      <div className="app-content">{children}</div>
+    </div>
     <SiteFooter />
   </body></html>;
 }

@@ -315,3 +315,53 @@
 .all-pages-grid a:hover{text-decoration:underline}
 .all-pages-logout{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 @media(max-width:600px){.all-pages-panel{position:fixed;left:16px;right:16px;top:auto;width:auto}}
+
+/* Persistent sidebar on every page */
+.app-shell{display:flex;align-items:flex-start;min-width:0}
+.app-content{flex:1;min-width:0}
+.app-sidebar{position:sticky;top:0;width:220px;flex:0 0 220px;height:100vh;overflow-y:auto;border-right:1px solid var(--line);background:#fff;padding:18px 14px;box-sizing:border-box}
+.app-sidebar-home,.app-sidebar a{display:block;padding:6px 10px;border-radius:8px;font-size:13px;color:var(--ink);text-decoration:none}
+.app-sidebar a:hover{background:var(--soft)}
+.app-sidebar a.is-active,.app-sidebar-home.is-active{background:var(--soft);font-weight:700}
+.app-sidebar-group{margin-top:14px}
+.app-sidebar-title{font:700 11px 'Manrope';letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 10px 4px}
+@media(max-width:1023px){.app-sidebar{display:none}}
+
+/* Chat message actions */
+.copy-msg{margin-left:8px;border:0;background:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0;text-decoration:underline}
+.copy-msg:hover{color:var(--ink)}
+.copy-msg-icon{display:inline-flex;align-items:center;vertical-align:middle}
+
+/* Seller profile */
+.seller-head{display:flex;align-items:center;gap:14px;padding:18px}
+.seller-name{font:700 22px 'Manrope';margin:0 0 4px}
+
+/* Trade section secondary navigation */
+.trade-shell{display:flex;align-items:flex-start;gap:0;min-width:0}
+.trade-nav{position:sticky;top:0;width:200px;flex:0 0 200px;padding:18px 12px;border-right:1px solid var(--line);background:var(--soft);box-sizing:border-box;align-self:stretch}
+.trade-nav a{display:block;padding:6px 10px;border-radius:8px;font-size:13px;color:var(--ink);text-decoration:none}
+.trade-nav a:hover{background:#fff}
+.trade-nav a.is-active{background:#fff;font-weight:700}
+.trade-nav-group{margin-bottom:12px}
+.trade-nav-title{font:700 11px 'Manrope';letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 10px 4px}
+.trade-body{flex:1;min-width:0}
+@media(max-width:900px){.trade-shell{flex-direction:column}.trade-nav{position:static;width:auto;flex:none;border-right:0;border-bottom:1px solid var(--line)}}
+
+/* Chat attachments */
+.chat-attach{cursor:pointer;display:inline-flex;align-items:center}
+.chat-image{display:block;max-width:220px;border-radius:8px;margin-top:4px}
+.chat-file{display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:underline}
+
+/* Trade pages */
+.table-wrap{overflow-x:auto}
+.sidebar-search{width:100%;box-sizing:border-box;margin-bottom:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+
+/* Stock detail */
+.spec dd{margin:0}
+
+/* Save (like) button on product page */
+.like-btn{display:inline-flex;align-items:center;gap:6px}
+.like-btn.is-liked{color:#e5383b}
+.like-btn.is-liked svg{color:#e5383b}
+.like-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.like-link{font-size:13px;color:var(--ink);text-decoration:underline}

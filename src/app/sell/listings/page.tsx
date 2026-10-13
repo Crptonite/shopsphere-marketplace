@@ -7,6 +7,7 @@ import { dateOnly, listingTypeLabel, money } from '@/lib/format';
 import AccountShell from '@/components/AccountShell';
 import SelectAll from '@/components/SelectAll';
 import RemoveListingButton from '../RemoveListingButton';
+import MarkSoldButton from '../MarkSoldButton';
 
 export const metadata = { title: 'Manage listings — ShopSphere' };
 
@@ -97,6 +98,7 @@ export default async function ManageListingsPage({ searchParams }: { searchParam
             <button className="btn btn-ghost btn-sm" disabled title="Insights are coming soon">📈 View insights</button>{' '}
             <button className="btn btn-ghost btn-sm" disabled title="Promotions are coming soon">Promote</button>{' '}
             <Link className="btn btn-ghost btn-sm" href={`/sell?edit=${l.id}`}>Edit</Link>{' '}
+            {(l.status === 'active' || l.status === 'sold') && <><MarkSoldButton id={l.id} status={l.status} />{' '}</>}
             <RemoveListingButton id={l.id} />
           </td>
         </tr>;

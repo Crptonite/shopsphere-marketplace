@@ -3,14 +3,9 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LogOut, Menu, X } from 'lucide-react';
+import { NAV_GROUPS } from '@/lib/nav';
 
-const PAGE_GROUPS: { title: string; links: [string, string][] }[] = [
-  { title: 'My account', links: [['/account', 'My account']] },
-  { title: 'Selling', links: [['/selling/listings', 'My listings'], ['/selling/sales', 'My sales'], ['/selling/manage', 'Manage'], ['/selling/growth/promote-listings', 'Promote listings'], ['/selling/growth/promo-calendar', 'Promo calendar']] },
-  { title: 'Buying', links: [['/buying/purchases', 'My purchases'], ['/buying/likes', 'My likes'], ['/buying/saved-searches', 'Saved searches'], ['/buying/promos', 'My promos'], ['/services/certified', 'Certified services']] },
-  { title: 'Trade', links: [['/trade', 'Trade']] },
-  { title: 'More', links: [['/settings', 'Settings'], ['/finance', 'Finance dashboard'], ['/finance/spending', 'Spending']] },
-];
+
 
 /** Hamburger menu listing every page, with a Log out button that is always available. */
 export default function AllPagesMenu() {
@@ -29,7 +24,7 @@ export default function AllPagesMenu() {
     </button>
     {open && <div id="all-pages-panel" className="all-pages-panel" role="navigation" aria-label="All pages">
       <div className="all-pages-grid">
-        {PAGE_GROUPS.map((g) => <div key={g.title}>
+        {NAV_GROUPS.map((g) => <div key={g.title}>
           <div className="all-pages-title">{g.title}</div>
           {g.links.map(([href, label]) => <Link key={href} href={href} onClick={() => setOpen(false)}>{label}</Link>)}
         </div>)}

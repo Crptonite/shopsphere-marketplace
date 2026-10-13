@@ -2,7 +2,7 @@
 const MB = 1024 * 1024;
 
 export const MAX_ATTACHMENTS = 4;
-export const ATTACHMENT_ACCEPT = '.png,.webp,.jpg,.jpeg,.pdf,.docx,.txt,.csv';
+export const ATTACHMENT_ACCEPT = '.png,.webp,.jpg,.jpeg,.pdf,.docx,.txt,.csv,.json';
 
 export const FILE_TYPES: Record<string, { mime: string; kind: 'image' | 'document'; maxBytes: number }> = {
   png: { mime: 'image/png', kind: 'image', maxBytes: 5 * MB },
@@ -13,6 +13,7 @@ export const FILE_TYPES: Record<string, { mime: string; kind: 'image' | 'documen
   docx: { mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', kind: 'document', maxBytes: 10 * MB },
   txt: { mime: 'text/plain', kind: 'document', maxBytes: 10 * MB },
   csv: { mime: 'text/csv', kind: 'document', maxBytes: 10 * MB },
+  json: { mime: 'application/json', kind: 'document', maxBytes: 10 * MB },
 };
 
 const DOCUMENT_EXTENSIONS = Object.keys(FILE_TYPES).filter((ext) => FILE_TYPES[ext].kind === 'document');

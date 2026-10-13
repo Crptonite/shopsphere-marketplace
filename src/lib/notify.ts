@@ -5,7 +5,7 @@ import { del } from '@/lib/redis';
 
 export type NotifyInput = {
   userId: string;
-  type: 'message' | 'order' | 'payment' | 'sale' | 'offer' | 'viewing' | 'payout' | 'refund' | 'price_drop';
+  type: 'message' | 'order' | 'payment' | 'sale' | 'offer' | 'viewing' | 'payout' | 'refund' | 'price_drop' | 'trade_reminder';
   title: string;
   body?: string;
   link?: string;

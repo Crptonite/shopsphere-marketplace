@@ -9,6 +9,7 @@ import { catalog } from '@/lib/catalog';
 import { dateOnly, isProperty, listingTypeLabel, money } from '@/lib/format';
 import AddToCartButton from '@/components/AddToCartButton';
 import ChatWithSeller from '@/components/ChatWithSeller';
+import LikeButton from '@/components/LikeButton';
 
 async function load(id: string): Promise<Listing | null> {
   if (hasDb()) return getListing(id);
@@ -36,6 +37,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const p = item.property;
   const sellerName = item.seller || 'Seller';
   const handle = sellerName.startsWith('@') ? sellerName : `@${sellerName.replace(/\s+/g, '_').toLowerCase()}`;
+  const sellerLabel = item.sellerId
+    ? <Link href={`/sellers/${item.sellerId}`}><strong>{handle}</strong></Link>
+    : <strong>{handle}</strong>;
 
   const specs: [string, string][] = [
     ['Condition', item.condition ?? '—'],
@@ -75,6 +79,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             </div>
             <h1 className="pd-title">{item.title}</h1>
             <div className="pd-price">{money(item.price)}{item.listingType === 'property_rent' && <small> / month</small>}</div>
+            {!mine && !item.isSample && <div style={{ marginTop: 10 }}><LikeButton productId={item.id} /></div>}
           </div>
         </div>
 
@@ -99,7 +104,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <div className="pd-seller-row">
             <span className="pd-avatar">{sellerName.replace('@', '').slice(0, 1).toUpperCase()}</span>
             <div>
-              <strong>{handle}</strong> <BadgeCheck size={14} className="pd-verified" aria-label="Verified" />
+              {sellerLabel} <BadgeCheck size={14} className="pd-verified" aria-label="Verified" />
               <div className="pd-muted">Listed on ShopSphere</div>
             </div>
           </div>
@@ -112,7 +117,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <div className="pd-seller-row">
             <span className="pd-avatar">{sellerName.replace('@', '').slice(0, 1).toUpperCase()}</span>
             <div>
-              <strong>{handle}</strong> <BadgeCheck size={14} className="pd-verified" aria-label="Verified" />
+              {sellerLabel} <BadgeCheck size={14} className="pd-verified" aria-label="Verified" />
               <div className="pd-muted">No reviews yet</div>
             </div>
           </div>
