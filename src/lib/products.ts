@@ -50,7 +50,7 @@ export const listingSchema = z.object({
   description: z.string().trim().max(5000).default(''),
   listingType: z.enum(['goods', 'trade_in', 'property_sale', 'property_rent']).default('goods'),
   stockQty: z.coerce.number().int().min(0).max(10000).default(1),
-  images: z.array(z.url()).max(8).default([]),
+  images: z.array(z.url()).max(4).default([]),
   property: propertySchema.nullable().optional(),
   status: z.enum(['draft', 'active']).default('active'),
 });

@@ -1,8 +1,9 @@
 'use client';
 
+import { MAX_ATTACHMENTS, ATTACHMENT_ACCEPT, isDocumentUrl, urlExtension } from '@/lib/files';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { ImagePlus, X } from 'lucide-react';
+import { FileText, ImagePlus, X } from 'lucide-react';
 
 type Initial = {
   id: string; title: string; brand: string; model: string; category: string; price: number; condition: string | null;
@@ -25,7 +26,7 @@ export default function ListingForm({ initial }: { initial: Initial }) {
   async function upload(files: FileList | null) {
     if (!files?.length) return;
     setError('');
-    for (const file of Array.from(files).slice(0, 8 - images.length)) {
+    for (const file of Array.from(files).slice(0, MAX_ATTACHMENTS - images.length)) {
       const body = new FormData();
       body.set('file', file);
       const res = await fetch('/api/uploads', { method: 'POST', body });
@@ -101,14 +102,14 @@ export default function ListingForm({ initial }: { initial: Initial }) {
     </div>
     <label>Description<textarea name="description" rows={4} maxLength={5000} defaultValue={initial?.description} placeholder={listingType === 'trade_in' ? 'What would you accept in exchange? Include condition and accessories.' : 'Condition, what is included, pickup or delivery details.'} /></label>
 
-    <div className="field">Photos ({images.length}/8)
+    <div className="field">Photos and files ({images.length}/{MAX_ATTACHMENTS})
       <div className="thumbs" style={{ flexWrap: 'wrap' }}>
-        {images.map((src) => <span key={src} style={{ position: 'relative' }}><img src={src} alt="" /><button type="button" className="heart-button" style={{ top: -6, right: -6, width: 22, height: 22 }} onClick={() => setImages((c) => c.filter((x) => x !== src))} aria-label="Remove photo"><X size={12} /></button></span>)}
-        {images.length < 8 && <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}><ImagePlus size={15} /> Upload<input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(e) => upload(e.target.files)} /></label>}
+        {images.map((src) => <span key={src} style={{ position: 'relative' }}>{isDocumentUrl(src) ? <span className="doc-chip"><FileText size={14} /> {urlExtension(src).toUpperCase()}</span> : <img src={src} alt="" />}<button type="button" className="heart-button" style={{ top: -6, right: -6, width: 22, height: 22 }} onClick={() => setImages((c) => c.filter((x) => x !== src))} aria-label="Remove photo"><X size={12} /></button></span>)}
+        {images.length < MAX_ATTACHMENTS && <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}><ImagePlus size={15} /> Upload<input type="file" accept={ATTACHMENT_ACCEPT} multiple hidden onChange={(e) => upload(e.target.files)} /></label>}
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
         <input className="input" value={urlDraft} onChange={(e) => setUrlDraft(e.target.value)} placeholder="…or paste an https:// image URL" />
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => { if (/^https:\/\//.test(urlDraft) && images.length < 8) { setImages((c) => [...c, urlDraft]); setUrlDraft(''); } }}>Add</button>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => { if (/^https:\/\//.test(urlDraft) && images.length < MAX_ATTACHMENTS) { setImages((c) => [...c, urlDraft]); setUrlDraft(''); } }}>Add</button>
       </div>
     </div>
 

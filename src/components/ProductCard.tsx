@@ -1,5 +1,6 @@
 'use client';
 
+import { coverImage } from '@/lib/files';
 import Link from 'next/link';
 import { Heart, Store } from 'lucide-react';
 import AddToCartButton from '@/components/AddToCartButton';
@@ -18,11 +19,16 @@ export type CardItem = {
   isSample: boolean;
   listingType?: string;
   stockQty?: number;
+  category?: string;
+  previousPrice?: number | null;
 };
+
+import { priceDrop } from '@/lib/pricing';
 
 export default function ProductCard({ product, saved, onSave }: { product: CardItem; saved: boolean; onSave: (id: string) => void }) {
   const type = product.listingType ?? 'goods';
-  const image = product.images?.[0] || product.image;
+  const image = coverImage(product.images, product.image);
+  const drop = priceDrop(product.price, product.previousPrice);
   return <article className="product-card">
     <div className="product-image-wrap">
       <Link className="cover" href={`/products/${product.id}`} aria-label={product.title}>
@@ -32,9 +38,10 @@ export default function ProductCard({ product, saved, onSave }: { product: CardI
       <button className={`heart-button ${saved ? 'is-saved' : ''}`} aria-label="Save item" onClick={() => onSave(product.id)}><Heart size={18} fill={saved ? 'currentColor' : 'none'} /></button>
     </div>
     <div className="product-info">
-      <div className="product-meta"><span>{product.brand}</span>{product.condition && <><span>·</span><span>{product.condition}</span></>}</div>
+      <div className="product-meta">{product.category && <span>{product.category}</span>}{product.category && product.brand && <span>·</span>}<span>{product.brand}</span>{product.condition && <><span>·</span><span>{product.condition}</span></>}</div>
       <h3><Link href={`/products/${product.id}`}>{product.title}</Link></h3>
       <p className="product-price">{money(product.price)}{type === 'property_rent' && <small style={{ fontSize: 11, fontWeight: 600 }}> /mo</small>}</p>
+      {drop && <p className="price-drop"><s>{money(drop.was)}</s> <span className="price-drop-pct">{drop.percent}% off</span></p>}
       <p className="seller-line"><Store size={13} /> {product.seller} <span>· {product.location}</span></p>
       {isProperty(type)
         ? <Link className="add-cart" href={`/products/${product.id}`}>View &amp; enquire</Link>

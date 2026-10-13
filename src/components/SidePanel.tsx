@@ -1,5 +1,6 @@
 'use client';
 
+import { coverImage } from '@/lib/files';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -52,7 +53,7 @@ export default function SidePanel({ kind, onClose, onKind, signedIn }: { kind: P
       if (kind === 'likes') {
         const d = await fetch('/api/likes').then((r) => r.json());
         return (d.items ?? []).map((p: { id: string; title: string; image: string; images: string[]; price: number; status: string }) =>
-          ({ key: p.id, href: `/products/${p.id}`, image: p.images?.[0] || p.image, title: p.title, sub: p.status === 'sold' ? 'Sold' : undefined, right: money2(p.price) }));
+          ({ key: p.id, href: `/products/${p.id}`, image: coverImage(p.images, p.image), title: p.title, sub: p.status === 'sold' ? 'Sold' : undefined, right: money2(p.price) }));
       }
       if (kind === 'chats') {
         const d = await fetch('/api/chats').then((r) => r.json());

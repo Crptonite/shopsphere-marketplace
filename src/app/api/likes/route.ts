@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ids: rows.map((r) => r.product_id) });
   }
   const { rows } = await pool.query(
-    `SELECT ${LISTING_COLUMNS} FROM likes l JOIN products p ON p.id = l.product_id
+    `SELECT ${LISTING_COLUMNS}, p.previous_price_sgd::float8 AS "previousPrice" FROM likes l JOIN products p ON p.id = l.product_id
      WHERE l.user_id = $1 AND p.status <> 'removed' ORDER BY l.created_at DESC LIMIT 200`, [auth.user.id]);
   return NextResponse.json({ items: rows });
 }

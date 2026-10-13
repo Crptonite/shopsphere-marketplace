@@ -17,3 +17,11 @@ export function serverError(context: string, error: unknown) {
   console.error(`${context}:`, error);
   return jsonError('Something went wrong. Please try again.', 500);
 }
+
+/** Guards an admin API route: signed-in user with admin rights. */
+export async function apiAdmin(): Promise<{ user: AppUser } | { response: NextResponse }> {
+  const auth = await apiUser();
+  if ('response' in auth) return auth;
+  if (!auth.user.isAdmin) return { response: jsonError('Admins only.', 403) };
+  return auth;
+}

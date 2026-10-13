@@ -1,3 +1,4 @@
+import { coverImage } from '@/lib/files';
 import { NextRequest, NextResponse } from 'next/server';
 import { pool, tx, hasDb } from '@/lib/db';
 import { catalog } from '@/lib/catalog';
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
         `INSERT INTO products (id, title, brand, model, category, price_sgd, condition, location, image_url, seller_id, seller_display_name,
            description, is_sample, status, listing_type, stock_qty, property, embedding)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,false,$13,$14,$15,$16,$17::vector)`,
-        [id, l.title, l.brand, l.model, l.category, l.price, l.condition, l.location, l.images[0] ?? '', auth.user.id, auth.user.displayName,
+        [id, l.title, l.brand, l.model, l.category, l.price, l.condition, l.location, coverImage(l.images), auth.user.id, auth.user.displayName,
           l.description, l.status, l.listingType, l.stockQty, l.property ? JSON.stringify(l.property) : null, vectorLiteral(embedding)],
       );
       await saveImages(client, id, l.images);

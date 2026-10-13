@@ -10,11 +10,13 @@ export default function LoginForm({ url, publishableKey, appUrl, next }: { url: 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
-  const callback = `${appUrl}/auth/callback?next=${encodeURIComponent(next)}`;
+  // Use the address the user is on, so the sign-in code is matched to the same origin it started from.
+  const callbackUrl = () => `${typeof window === 'undefined' ? appUrl : window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
   async function oauth(provider: 'google' | 'github') {
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: callback } });
+    setMessage(null);
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: callbackUrl() } });
     if (error) { setBusy(false); setMessage({ kind: 'error', text: error.message }); }
   }
 
@@ -32,7 +34,7 @@ export default function LoginForm({ url, publishableKey, appUrl, next }: { url: 
       router.replace(next);
       router.refresh();
     } else {
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callback, data: { full_name: String(form.get('name') || '') } } });
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callbackUrl(), data: { full_name: String(form.get('name') || '') } } });
       setBusy(false);
       if (error) return setMessage({ kind: 'error', text: error.message });
       if (data.session) { router.replace(next); router.refresh(); }
@@ -41,9 +43,9 @@ export default function LoginForm({ url, publishableKey, appUrl, next }: { url: 
   }
 
   return <div className="form">
-    <button className="btn btn-ghost btn-block" disabled={busy} onClick={() => oauth('google')}>Continue with Google</button>
-    <button className="btn btn-ghost btn-block" disabled={busy} onClick={() => oauth('github')}>Continue with GitHub</button>
-    <div className="divider">or with email</div>
+    <button className="btn btn-ghost btn-block" type="button" disabled={busy} onClick={() => oauth('google')}>Continue with Google (Gmail)</button>
+    <button className="btn btn-ghost btn-block" type="button" disabled={busy} onClick={() => oauth('github')}>Continue with GitHub</button>
+    <div className="divider">or with email and password</div>
     <form className="form" onSubmit={submit}>
       {mode === 'signup' && <label>Display name<input name="name" maxLength={80} autoComplete="nickname" /></label>}
       <label>Email<input name="email" type="email" required autoComplete="email" /></label>

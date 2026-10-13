@@ -1,3 +1,5 @@
+import { coverImage } from '@/lib/files';
+import { notifyPriceDrop } from '@/lib/price-alerts';
 import { NextRequest, NextResponse } from 'next/server';
 import { pool, tx } from '@/lib/db';
 import { apiUser, jsonError, serverError } from '@/lib/api';
@@ -34,6 +36,7 @@ export async function PUT(request: NextRequest, { params }: Ctx) {
   if (!parsed.success) return jsonError(parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '));
   const l = normaliseListing(parsed.data);
   try {
+    const previous = await pool.query<{ price: number }>('SELECT price_sgd::float8 AS price FROM products WHERE id = $1', [id]);
     const embedding = await embed(`${l.title} ${l.brand} ${l.model} ${l.category} ${l.description}`);
     await tx(async (client) => {
       await client.query(
@@ -41,12 +44,18 @@ export async function PUT(request: NextRequest, { params }: Ctx) {
            description=$10, status=CASE WHEN status = 'sold' AND $15 > 0 THEN $11 WHEN status = 'sold' THEN status ELSE $11 END,
            listing_type=$12, property=$13, embedding=COALESCE($14::vector, embedding), stock_qty=$15, updated_at=now()
          WHERE id=$1`,
-        [id, l.title, l.brand, l.model, l.category, l.price, l.condition, l.location, l.images[0] ?? '', l.description, l.status,
+        [id, l.title, l.brand, l.model, l.category, l.price, l.condition, l.location, coverImage(l.images), l.description, l.status,
           l.listingType, l.property ? JSON.stringify(l.property) : null, vectorLiteral(embedding), l.stockQty],
       );
       await saveImages(client, id, l.images);
     });
     await invalidate('search:');
+    const before = previous.rows[0]?.price;
+    if (before !== undefined && l.price !== before) {
+      // Keep the price before a drop so the listing can show the discount; clear it when the price rises.
+      await pool.query('UPDATE products SET previous_price_sgd = $2, price_changed_at = now() WHERE id = $1', [id, l.price < before ? before : null]);
+    }
+    if (before !== undefined && l.price < before) await notifyPriceDrop(id, l.title, before, l.price, auth.user.id);
     return NextResponse.json({ id });
   } catch (error) {
     return serverError('Product update failed', error);
